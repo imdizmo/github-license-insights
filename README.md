@@ -1,4 +1,4 @@
-# GitHub License Badge
+# GitHub License Insights
 
 Shows a simple summary of repository licenses directly on GitHub pages.
 
@@ -11,9 +11,6 @@ Shows a simple summary of repository licenses directly on GitHub pages.
 ## Installation
 
 ### Firefox
-Install from AMO (link)
-
-### Chrome
-Install from Chrome Web Store (link)
+Install from AMO ([link](https://addons.mozilla.org/en-US/firefox/addon/github-license-insights/))
 
 ## Screenshots
