@@ -33,10 +33,17 @@ function scrapeLicenseFromDOM() {
     const sidebar = document.querySelector(".Layout-sidebar");
     if (!sidebar) return null;
 
-    // GitHub sidebar usually has links matching /LICENSE or /license under the About section
-    const licenseLink = sidebar.querySelector(
-        'a[href*="/LICENSE"], a[href*="/license"], a[href*="/LICENCE"], a[href*="/licence"]'
-    );
+    // 1. Try finding the license link by GitHub's native law icon (robust & language-independent)
+    const lawIcon = sidebar.querySelector("svg.octicon-law");
+    let licenseLink = lawIcon ? lawIcon.closest("a") : null;
+
+    // 2. Fallback to case-insensitive attribute selector matching common license paths
+    if (!licenseLink) {
+        licenseLink = sidebar.querySelector(
+            'a[href*="/license" i], a[href*="/licence" i], a[href*="/copying" i]'
+        );
+    }
+
     if (!licenseLink) return null;
 
     const text = licenseLink.innerText.trim();
@@ -245,6 +252,16 @@ function injectBadge(badge) {
     removeExistingBadges();
 
     const tryInject = () => {
+        // Target the first BorderGrid-cell inside the sidebar (which is always the About section container)
+        const container = document.querySelector(".Layout-sidebar .BorderGrid .BorderGrid-row .BorderGrid-cell");
+        if (container) {
+            if (container.querySelector(".glb-badge")) return true;
+            // Inject badge as the first item inside the container (above the description)
+            container.insertBefore(badge, container.firstChild);
+            return true;
+        }
+
+        // Fallback: search for h2 containing "About"
         const sidebar = document.querySelector(".Layout-sidebar");
         if (!sidebar) return false;
 
@@ -253,12 +270,12 @@ function injectBadge(badge) {
 
         if (!aboutHeader) return false;
 
-        const container = aboutHeader.parentElement;
-        if (!container) return false;
+        const fallbackContainer = aboutHeader.parentElement;
+        if (!fallbackContainer) return false;
 
-        if (container.querySelector(".glb-badge")) return true;
+        if (fallbackContainer.querySelector(".glb-badge")) return true;
 
-        container.insertBefore(badge, aboutHeader);
+        fallbackContainer.insertBefore(badge, aboutHeader);
         return true;
     };
 
