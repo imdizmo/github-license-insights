@@ -4,7 +4,8 @@
   "description": "Shows a simple summary of repository licenses directly on GitHub pages.",
   "main": "background.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "build": "node package.js"
   },
   "repository": {
     "type": "git",

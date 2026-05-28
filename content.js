@@ -30,16 +30,17 @@ function getRepoInfo() {
 // DOM License Scraping (Fallback / Fast-path)
 // -------------------------
 function scrapeLicenseFromDOM() {
-    const sidebar = document.querySelector(".Layout-sidebar");
-    if (!sidebar) return null;
-
-    // 1. Try finding the license link by GitHub's native law icon (robust & language-independent)
-    const lawIcon = sidebar.querySelector("svg.octicon-law");
+    // Look in the sidebar first (either classic class or semantic role)
+    const sidebar = document.querySelector(".Layout-sidebar") || document.querySelector("[role='complementary']");
+    
+    // 1. Try finding the license link by GitHub's native law icon
+    const lawIcon = (sidebar || document).querySelector("svg.octicon-law");
     let licenseLink = lawIcon ? lawIcon.closest("a") : null;
 
     // 2. Fallback to case-insensitive attribute selector matching common license paths
     if (!licenseLink) {
-        licenseLink = sidebar.querySelector(
+        const searchContext = sidebar || document;
+        licenseLink = searchContext.querySelector(
             'a[href*="/license" i], a[href*="/licence" i], a[href*="/copying" i]'
         );
     }
@@ -251,31 +252,54 @@ function removeExistingBadges() {
 function injectBadge(badge) {
     removeExistingBadges();
 
-    const tryInject = () => {
-        // Target the first BorderGrid-cell inside the sidebar (which is always the About section container)
-        const container = document.querySelector(".Layout-sidebar .BorderGrid .BorderGrid-row .BorderGrid-cell");
-        if (container) {
-            if (container.querySelector(".glb-badge")) return true;
-            // Inject badge as the first item inside the container (above the description)
-            container.insertBefore(badge, container.firstChild);
-            return true;
+    const findAboutContainer = () => {
+        // Strategy 1: Find by the license link (highly reliable since the badge relates to the license)
+        const licenseLink = document.querySelector(
+            '.Layout-sidebar a[href*="/license" i], .Layout-sidebar a[href*="/licence" i], .Layout-sidebar a[href*="/copying" i], ' +
+            '[role="complementary"] a[href*="/license" i], [role="complementary"] a[href*="/licence" i], [role="complementary"] a[href*="/copying" i], ' +
+            'a[href*="/LICENSE" i], a[href*="/license" i], a[href*="/copying" i]'
+        );
+        if (licenseLink) {
+            const cell = licenseLink.closest(".BorderGrid-cell");
+            if (cell) return cell;
+            
+            const row = licenseLink.closest(".BorderGrid-row");
+            if (row) return row;
+
+            const section = licenseLink.closest("section") || licenseLink.closest("div[class*='sidebar']");
+            if (section) return section;
         }
 
-        // Fallback: search for h2 containing "About"
-        const sidebar = document.querySelector(".Layout-sidebar");
-        if (!sidebar) return false;
+        // Strategy 2: Find by "About" H2 header (case-insensitive & translations)
+        const aboutHeader = Array.from(document.querySelectorAll("h2"))
+            .find(h => {
+                const text = h.innerText.trim().toLowerCase();
+                return text === "about" || text === "à propos" || text === "über" || text === "información";
+            });
+        if (aboutHeader) {
+            return aboutHeader.parentElement;
+        }
 
-        const aboutHeader = Array.from(sidebar.querySelectorAll("h2"))
-            .find(h => h.innerText.trim() === "About");
+        // Strategy 3: Find first BorderGrid-cell inside the Layout-sidebar or anywhere
+        const borderGridCell = document.querySelector(".Layout-sidebar .BorderGrid .BorderGrid-row .BorderGrid-cell") ||
+                               document.querySelector(".BorderGrid .BorderGrid-row .BorderGrid-cell");
+        if (borderGridCell) return borderGridCell;
 
-        if (!aboutHeader) return false;
+        // Strategy 4: Generic sidebar container
+        const sidebar = document.querySelector(".Layout-sidebar") || document.querySelector("[role='complementary']");
+        if (sidebar) return sidebar;
 
-        const fallbackContainer = aboutHeader.parentElement;
-        if (!fallbackContainer) return false;
+        return null;
+    };
 
-        if (fallbackContainer.querySelector(".glb-badge")) return true;
+    const tryInject = () => {
+        const container = findAboutContainer();
+        if (!container) return false;
 
-        fallbackContainer.insertBefore(badge, aboutHeader);
+        if (container.querySelector(".glb-badge")) return true;
+
+        // Inject badge as the first item inside the container (above the description)
+        container.insertBefore(badge, container.firstChild);
         return true;
     };
 
