@@ -1,12 +1,19 @@
 {
     "manifest_version": 3,
     "name": "GitHub License Insights",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Shows a simple summary of repository licenses on GitHub",
     "homepage_url": "https://github.com/imdizmo/github-license-insights",
     "icons": {
         "48": "icons/icon-48.png",
         "128": "icons/icon-128.png"
+    },
+    "permissions": [
+        "storage"
+    ],
+    "background": {
+        "scripts": ["background.js"],
+        "service_worker": "background.js"
     },
     "host_permissions": [
         "https://github.com/*",

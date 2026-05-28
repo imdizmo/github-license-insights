@@ -1,0 +1,24 @@
+{
+  "name": "explain_license",
+  "version": "1.0.0",
+  "description": "Shows a simple summary of repository licenses directly on GitHub pages.",
+  "main": "background.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imdizmo/github-license-insights.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/imdizmo/github-license-insights/issues"
+  },
+  "homepage": "https://github.com/imdizmo/github-license-insights#readme",
+  "dependencies": {
+    "playwright": "^1.60.0"
+  }
+}
