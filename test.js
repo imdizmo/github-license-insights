@@ -160,6 +160,68 @@ async function runTests() {
         await page.screenshot({ path: complexScreenshotPath });
         console.log("Saved Complex License screenshot to:", complexScreenshotPath);
 
+        // 5. Test React-style Sidebar Layout
+        await browserContext.route("https://api.github.com/repos/test-owner/react-repo/license", async (route) => {
+            console.log("[Test Log] Intercepted GitHub API license request for react-repo");
+            await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify({
+                    license: {
+                        name: "Apache License 2.0",
+                        spdx_id: "Apache-2.0"
+                    },
+                    content: btoa("Apache License Version 2.0")
+                })
+            });
+        });
+
+        await page.route("https://github.com/test-owner/react-repo", async (route) => {
+            console.log("[Test Log] Intercepted GitHub repo page request for react-repo");
+            await route.fulfill({
+                status: 200,
+                contentType: "text/html",
+                body: `
+                    <!DOCTYPE html>
+                    <html>
+                        <head>
+                            <title>test-owner/react-repo</title>
+                        </head>
+                        <body>
+                            <rails-partial data-partial-name="codeViewRepoRoute.Sidebar">
+                                <div class="prc-PageLayout-Pane-AyzHK">
+                                    <div>
+                                        <h2>About</h2>
+                                        <p>Description of the React layout repo</p>
+                                        <div>
+                                            <a href="/test-owner/react-repo/blob/main/LICENSE">Apache-2.0 license</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </rails-partial>
+                        </body>
+                    </html>
+                `
+            });
+        });
+
+        console.log("Navigating to React-style layout repo page...");
+        await page.goto("https://github.com/test-owner/react-repo");
+
+        console.log("Waiting for badge UI element (.glb-badge)...");
+        await page.waitForSelector(".glb-badge", { timeout: 5000 });
+
+        const reactTitleText = await page.textContent(".glb-title");
+        console.log("Verified React Layout Badge Title:", reactTitleText);
+        assert.ok(reactTitleText.includes("Apache-2.0"), "Badge title must show Apache-2.0 license info");
+
+        console.log("✓ TEST 4 PASSED: Badge loaded on React-style sidebar layout correctly.");
+
+        // Capture screenshot of the React layout badge
+        const reactScreenshotPath = "/home/dizmo/.gemini/antigravity/brain/45543849-3616-466c-8b51-f1d3b083f8c0/screenshot_react_layout.png";
+        await page.screenshot({ path: reactScreenshotPath });
+        console.log("Saved React Layout screenshot to:", reactScreenshotPath);
+
     } catch (error) {
         console.error("❌ TEST RUN FAILED:", error);
         process.exit(1);

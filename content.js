@@ -30,17 +30,21 @@ function getRepoInfo() {
 // DOM License Scraping (Fallback / Fast-path)
 // -------------------------
 function scrapeLicenseFromDOM() {
-    // Look in the sidebar first (either classic class or semantic role)
-    const sidebar = document.querySelector(".Layout-sidebar") || document.querySelector("[role='complementary']");
-    
-    // 1. Try finding the license link by GitHub's native law icon
-    const lawIcon = (sidebar || document).querySelector("svg.octicon-law");
+    // Look in the sidebar first (either classic class, semantic role, or aside tag)
+    const sidebar = document.querySelector("[data-partial-name*='Sidebar']") || 
+                    document.querySelector("div[class*='PageLayout-Pane']") ||
+                    document.querySelector(".Layout-sidebar") || 
+                    document.querySelector("[role='complementary']") ||
+                    document.querySelector("aside");
+    if (!sidebar) return null;
+
+    // 1. Try finding the license link by GitHub's native law icon inside the sidebar
+    const lawIcon = sidebar.querySelector("svg.octicon-law");
     let licenseLink = lawIcon ? lawIcon.closest("a") : null;
 
-    // 2. Fallback to case-insensitive attribute selector matching common license paths
+    // 2. Fallback to case-insensitive attribute selector matching common license paths inside the sidebar
     if (!licenseLink) {
-        const searchContext = sidebar || document;
-        licenseLink = searchContext.querySelector(
+        licenseLink = sidebar.querySelector(
             'a[href*="/license" i], a[href*="/licence" i], a[href*="/copying" i]'
         );
     }
@@ -253,11 +257,17 @@ function injectBadge(badge) {
     removeExistingBadges();
 
     const findAboutContainer = () => {
-        // Strategy 1: Find by the license link (highly reliable since the badge relates to the license)
-        const licenseLink = document.querySelector(
-            '.Layout-sidebar a[href*="/license" i], .Layout-sidebar a[href*="/licence" i], .Layout-sidebar a[href*="/copying" i], ' +
-            '[role="complementary"] a[href*="/license" i], [role="complementary"] a[href*="/licence" i], [role="complementary"] a[href*="/copying" i], ' +
-            'a[href*="/LICENSE" i], a[href*="/license" i], a[href*="/copying" i]'
+        // Resolve the sidebar element first (either classic class, semantic role, or aside tag)
+        const sidebar = document.querySelector("[data-partial-name*='Sidebar']") || 
+                        document.querySelector("div[class*='PageLayout-Pane']") ||
+                        document.querySelector(".Layout-sidebar") || 
+                        document.querySelector("[role='complementary']") ||
+                        document.querySelector("aside");
+        if (!sidebar) return null;
+
+        // Strategy 1: Find by the license link inside the sidebar (highly reliable)
+        const licenseLink = sidebar.querySelector(
+            'a[href*="/license" i], a[href*="/licence" i], a[href*="/copying" i]'
         );
         if (licenseLink) {
             const cell = licenseLink.closest(".BorderGrid-cell");
@@ -270,8 +280,8 @@ function injectBadge(badge) {
             if (section) return section;
         }
 
-        // Strategy 2: Find by "About" H2 header (case-insensitive & translations)
-        const aboutHeader = Array.from(document.querySelectorAll("h2"))
+        // Strategy 2: Find by "About" H2 header inside the sidebar (case-insensitive & translations)
+        const aboutHeader = Array.from(sidebar.querySelectorAll("h2"))
             .find(h => {
                 const text = h.innerText.trim().toLowerCase();
                 return text === "about" || text === "à propos" || text === "über" || text === "información";
@@ -280,16 +290,12 @@ function injectBadge(badge) {
             return aboutHeader.parentElement;
         }
 
-        // Strategy 3: Find first BorderGrid-cell inside the Layout-sidebar or anywhere
-        const borderGridCell = document.querySelector(".Layout-sidebar .BorderGrid .BorderGrid-row .BorderGrid-cell") ||
-                               document.querySelector(".BorderGrid .BorderGrid-row .BorderGrid-cell");
+        // Strategy 3: Find first BorderGrid-cell inside the sidebar
+        const borderGridCell = sidebar.querySelector(".BorderGrid .BorderGrid-row .BorderGrid-cell");
         if (borderGridCell) return borderGridCell;
 
-        // Strategy 4: Generic sidebar container
-        const sidebar = document.querySelector(".Layout-sidebar") || document.querySelector("[role='complementary']");
-        if (sidebar) return sidebar;
-
-        return null;
+        // Strategy 4: Fallback to the sidebar container itself
+        return sidebar;
     };
 
     const tryInject = () => {
