@@ -5,7 +5,8 @@
   "main": "background.js",
   "scripts": {
     "test": "node test.js",
-    "build": "node package.js"
+    "build": "node package.js",
+    "publish:firefox": "node publish-firefox.js"
   },
   "repository": {
     "type": "git",

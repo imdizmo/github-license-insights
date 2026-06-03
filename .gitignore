@@ -1,2 +1,5 @@
 node_modules/
 *.zip
+dist-firefox/
+web-ext-artifacts/
+.env
