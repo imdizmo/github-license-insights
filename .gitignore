@@ -4,3 +4,4 @@ dist-firefox/
 web-ext-artifacts/
 .env
 UPLOAD_SCREENSHOTS.md
+CHROMEWEBSTORE.md
