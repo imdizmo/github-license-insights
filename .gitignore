@@ -3,3 +3,4 @@ node_modules/
 dist-firefox/
 web-ext-artifacts/
 .env
+UPLOAD_SCREENSHOTS.md
