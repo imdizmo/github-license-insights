@@ -6,7 +6,9 @@
   "scripts": {
     "test": "node test.js",
     "build": "node package.js",
-    "publish:firefox": "node publish-firefox.js"
+    "publish:firefox": "node publish-firefox.js",
+    "publish:chrome": "node publish-chrome.js",
+    "publish:all": "npm run build && node publish-firefox.js && node publish-chrome.js"
   },
   "repository": {
     "type": "git",
